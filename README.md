@@ -24,7 +24,9 @@ Otwórz: https://start.spring.io/
   - H2 Database
   - Spring Boot Actuator
 
-Kliknij: Generate
+Kliknij: **Generate**
+
+* Warto jeszcze spoglądać na: https://calendar.spring.io/ 
 
 ## Analiza pobranej paczki
 - Rozpakowanie zip i otwarcie w IDE
@@ -190,7 +192,7 @@ Uzupełnij dokumentację API:
 public OpenAPI openAPI() {
 
     Contact contact = new Contact();
-    contact.name("your name");
+    contact.name("Zbyszko");
     contact.email("your@email.com");
 
     Info info = new Info();
@@ -300,43 +302,7 @@ public class EventController {
 }
 ```
 ### Walidacja danych
-Model:
-
-```java
-@Data
-@AllArgsConstructor
-@Entity
-@NoArgsConstructor
-public class Event {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Size(min=4, max=50)
-    private String name;
-
-    @NotBlank
-    private String description;
-
-    @Min(value = 100, message = "please remember about minimal price")
-    private Double entranceFee;
-
-    @NotNull
-    private LocalDateTime startDate;
-}
-```
-
-TODO: ConstraintViolationImpl
-
-## Profiling {dev} {test} {prod} itp
-## thymeleaf
-## actuators
-## RestTemplate vs WebClient
-## Przykłady użycia `@Qualifier`
-
-
-### Fix error: `Unable to create a Configuration, because no Jakarta Bean Validation...`
-Dodać: 
+Dodać:
 ```xml
 <dependency>
     <groupId>org.hibernate</groupId>
@@ -344,9 +310,144 @@ Dodać:
     <version>8.0.0.Final</version>
 </dependency>
 ```
+Przy okazji naprawia to błąd: `Unable to create a Configuration, because no Jakarta Bean Validation...`
+
+Model:
+```java
+@Data
+@AllArgsConstructor
+@Entity
+@NoArgsConstructor
+public class Event {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  @Size(min = 4, max = 50)
+  private String name;
+
+  @NotBlank(message = "description cannot be empty")
+  private String description;
+
+  @Positive(message = "please remember about minimal price")
+  private Double entranceFee;
+
+  @NotNull
+  private LocalDateTime startDate;
+}
+```
+
+Dodaj adnotację `@Valid`
+```java
+@PostMapping("/addEvent")
+public void addEvent(@Valid @RequestBody Event event) {
+    eventService.addEvent(event);
+}
+```
+Domyślne wiadomości w walidatorze: `hibernate-validator-8.0.0.Final.jar!\org\hibernate\validator\ValidationMessages.properties`
+
+Model odpowiedzi błędnej:
+```java
+@Data
+public class EventErrorResponse {
+
+    LocalDateTime localDateTime;
+    Integer status;
+    List<String> errors;
+}
+```
+
+Handler obsługi błędu:
+```java
+@ControllerAdvice
+public class EventExceptionHandler extends ResponseEntityExceptionHandler {
+    
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+        EventErrorResponse eventErrorResponse = new EventErrorResponse();
+        eventErrorResponse.setLocalDateTime(LocalDateTime.now());
+        eventErrorResponse.setStatus(status.value());
+
+        eventErrorResponse.setErrors(ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .toList());
 
 
+        return new ResponseEntity<>(eventErrorResponse, headers, status);
+    }
+}
+```
 
 
+Controller:
+```java
+    @Operation(
+            summary = "Adds event",
+            description = "Adds event to event list")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "400", content = { @Content(schema = @Schema(implementation = EventErrorResponse.class), mediaType = "application/json") }),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error") })
+    @PostMapping("/addEvent")
+    public void addEvent(@Valid @RequestBody Event event) {
+        eventService.addEvent(event);
+    }
+```
+Więcej o walidacji: https://mkyong.com/spring-boot/spring-rest-validation-example/ 
+
+## Actuators
+* Teoria: https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
+* Domyślny link: http://localhost:8020/actuator 
+* Rozszerzenie w _application.properties_: `management.endpoints.web.exposure.include=*`
+* Ciekawsze endpointy (opisz wszystkich: https://www.baeldung.com/spring-boot-actuators#3-predefined-endpoints):
+  * http://localhost:8020/actuator/health
+  * http://localhost:8020/actuator/beans
+  * http://localhost:8020/actuator/mappings
+  * http://localhost:8020/actuator/env
+    * aby zobaczyć ukryte wartości (od wersji 3.0) należy dodać do pliku properties: `management.endpoint.env.show-values=ALWAYS`
+  * http://localhost:8020/actuator/info
+    ```properties
+    management.info.env.enabled=true
+    info.app.name=${spring.application.name}
+    info.app.description=This is event manager service
+    info.app.version=0.0.1-alpha
+    ```
+    ```java
+    @Value("${info.app.name}") private String appName;
+    @Value("${info.app.description}") private String appDescription;
+    @Value("${info.app.version}") private String appVersion;
+    
+    @Bean
+    public OpenAPI openAPI() {
+
+        Contact contact = new Contact();
+        contact.name("Zbyszko");
+        contact.email("your@email.com");
+
+        Info info = new Info();
+        info.setTitle(appName);
+        info.setDescription(appDescription);
+        info.setVersion(appVersion);
+        info.setContact(contact);
+
+        OpenAPI openAPI = new OpenAPI();
+        openAPI.setInfo(info);
+        return openAPI;
+    }
+    ```
 
 
+[//]: # (## Profiling {dev} {test} {prod} itp)
+[//]: # (## thymeleaf)
+[//]: # (## RestTemplate vs WebClient)
+[//]: # (## Przykłady użycia `@Qualifier`)
+[//]: # (# RestAssured)
+[//]: # (# OpenApi)
+[//]: # (# Security)
+
+[//]: # (# Zadanie do wykonania)
+[//]: # (- dodać custom validator)
+[//]: # (- dodać custom actuator zwracający nazwę projektu, wersję i autorów z grupy)
