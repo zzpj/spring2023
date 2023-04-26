@@ -1,7 +1,7 @@
 # Spring Full Course 2023 - notatki z zajęć
 ## Prezentacja
 
-
+https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot.pdf
 
 ## Live coding
 Otwórz: https://start.spring.io/
@@ -26,7 +26,7 @@ Otwórz: https://start.spring.io/
 
 Kliknij: **Generate**
 
-* Warto jeszcze spoglądać na: https://calendar.spring.io/ 
+* Warto jeszcze spoglądać na: https://calendar.spring.io/
 
 ## Analiza pobranej paczki
 - Rozpakowanie zip i otwarcie w IDE
