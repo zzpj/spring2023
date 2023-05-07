@@ -518,7 +518,7 @@ spring.profiles.active=prod
 ```
 
 ### Scenariusz nr 3 Multi-document files
-Usuń pliki: `application-dev.properties`, `application-int.properties` oraz `application-prod.properties` i ustaw wartość property w zależności od środowiska:
+Usuń pliki: `application-dev.properties`, `application-int.properties` oraz `application-prod.properties` i ustaw wartości properties w jednym pliku, w zależności od środowiska:
 ```properties
 spring.application.name=event-manager-service
 management.endpoints.web.exposure.include=*
@@ -540,22 +540,157 @@ spring.config.activate.on-profile=prod
 info.app.description=This is event manager service on PROD
 server.port=8023
 ```
-Przygotuj różne konfiguracje uruchomieniowe w IntelliJ w zaleźności od środowiska
+Przygotuj różne konfiguracje uruchomieniowe w IntelliJ
 Zapisz tą część na oddzielnym (różnym od `master`) branch'u i wróć na poprzednią implementację na branchu `master`
 
 ## OpenAPI - SpringBoot jako stub-server
+1. Wstęp teoretyczny w prezentacji: 
+2. Przegląd narzędzi do OpenAPI
+3. Stwórz `api.yaml` w `src/main/resource` albo ręcznie albo z wykorzystaniem IDE
+4. Uzupełnij:
+```yaml
+openapi: 3.0.3
+info:
+  title: place-manager
+  description: place description
+  version: 1.0.2
+paths:
+  /places:
+    get:
+      summary: get all places
+      operationId: getAllPlaces
+      responses:
+        200:
+          description: all places for events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+    post:
+      summary: create a new place
+      responses:
+        201:
+          description: Created
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        409:
+          description: id conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Place'
+
+  /place/{placeId}:
+    parameters:
+      - name: placeId
+        description: the place unique id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: get place for event
+      responses:
+        200:
+          description: the place for event provided successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        404:
+          description: the place not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+    delete:
+      summary: deletes place for event
+      responses:
+        200:
+          description: delete the place for event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        404:
+          description: the place not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+components:
+  schemas:
+    Place:
+      type: object
+      required:
+        - id
+        - name
+        - capacity
+        - placeType
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        capacity:
+          type: number
+        placeType:
+          type: string
+          enum:
+            - stadium
+            - outdoor
+            - town square
+            - park
+    PlaceError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: error message
+          type: string
+```
+5. Wykorzystaj wbudowane narzędzie i albo uzupełnianie `pom.xml` o brakujące _dependencies_ albo [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator)
 
 
 
 
+## Rest Clients (również z wykorzystaniem OpenAPI)
+[//]: # ( RestTemplate vs WebClient)
+## Security
+
+## RestAssured
 
 
-[//]: # (## RestTemplate vs WebClient)
+
+
+..eof
+
 [//]: # (## Przykłady użycia `@Qualifier`)
-[//]: # (# RestAssured)
-[//]: # (# OpenApi)
-[//]: # (# Security)
-
 [//]: # (# Zadanie do wykonania)
 [//]: # (- dodać custom validator)
 [//]: # (- dodać custom actuator zwracający nazwę projektu, wersję i autorów z grupy)
