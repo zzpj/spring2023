@@ -553,7 +553,8 @@ openapi: 3.0.3
 info:
   title: place-manager
   description: place description
-  version: 1.0.2
+  version: 1.0.0
+
 paths:
   /places:
     get:
@@ -570,6 +571,7 @@ paths:
                   $ref: '#/components/schemas/Place'
     post:
       summary: create a new place
+      operationId: createPlace
       responses:
         201:
           description: Created
@@ -592,7 +594,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Place'
 
-  /place/{placeId}:
+  /places/{placeId}:
     parameters:
       - name: placeId
         description: the place unique id
@@ -602,6 +604,7 @@ paths:
           type: string
     get:
       summary: get place for event
+      operationId: getPlaceById
       responses:
         200:
           description: the place for event provided successfully
@@ -623,6 +626,7 @@ paths:
                 $ref: '#/components/schemas/PlaceError'
     delete:
       summary: deletes place for event
+      operationId: deletePlaceById
       responses:
         200:
           description: delete the place for event
@@ -675,9 +679,48 @@ components:
           type: string
 ```
 5. Wykorzystaj wbudowane narzędzie i albo uzupełnianie `pom.xml` o brakujące _dependencies_ albo [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator)
+```xml
+<openapi-generator-version>6.5.0</openapi-generator-version>
+```
+```xml
+<dependency>
+  <groupId>org.openapitools</groupId>
+  <artifactId>openapi-generator</artifactId>
+  <version>${openapi-generator-version}</version>
+</dependency>
 
-
-
+<dependency>
+<groupId>org.openapitools</groupId>
+<artifactId>jackson-databind-nullable</artifactId>
+<version>0.2.6</version>
+</dependency>
+```
+```xml
+<plugin>
+    <groupId>org.openapitools</groupId>
+    <artifactId>openapi-generator-maven-plugin</artifactId>
+    <version>${openapi-generator-version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+            <configuration>
+                <inputSpec>${project.basedir}/src/main/resources/api.yaml</inputSpec>
+                <generatorName>spring</generatorName>
+                <apiPackage>com.zzpj.openapi</apiPackage>
+                <modelPackage>com.zzpj.openapi.model</modelPackage>
+                <configOptions>
+                    <sourceFolder>src/gen/java/main</sourceFolder>
+                    <useJakartaEe>true</useJakartaEe>
+                    <interfaceOnly>true</interfaceOnly>
+                </configOptions>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+6. Pamiętaj o "Reload All Maven Project"
 
 ## Rest Clients (również z wykorzystaniem OpenAPI)
 [//]: # ( RestTemplate vs WebClient)
