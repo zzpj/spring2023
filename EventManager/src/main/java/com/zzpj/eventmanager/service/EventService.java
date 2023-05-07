@@ -1,13 +1,11 @@
-package com.zzpj.EventManager.service;
+package com.zzpj.eventmanager.service;
 
-import com.zzpj.EventManager.model.Event;
-import com.zzpj.EventManager.repository.EventRepository;
+import com.zzpj.eventmanager.model.Event;
+import com.zzpj.eventmanager.repository.EventRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -18,6 +16,7 @@ public class EventService {
     public List<Event> getAllEvents() {
         return eventRepository.findAll();
     }
+
     public Event getEvent(Long id) {
         return eventRepository.findById(id).orElseThrow();
     }

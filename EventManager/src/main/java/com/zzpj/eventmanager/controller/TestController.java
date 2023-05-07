@@ -1,4 +1,4 @@
-package com.zzpj.EventManager.controller;
+package com.zzpj.eventmanager.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,6 +22,6 @@ public class TestController {
     })
     @GetMapping("/hello/{name}")
     public String getServiceName(@PathVariable("name") String name) {
-        return "Hello " + name +  " \n you are using " + applicationName;
+        return "Hello " + name + " \n you are using " + applicationName;
     }
 }

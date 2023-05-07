@@ -1,17 +1,11 @@
-package com.zzpj.EventManager.config;
+package com.zzpj.eventmanager.config;
 
-import com.zzpj.EventManager.model.Event;
-import com.zzpj.EventManager.service.EventService;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 public class Config {
@@ -27,9 +21,12 @@ public class Config {
 //        return new EventService(eventList);
 //    }
 
-    @Value("${info.app.name}") private String appName;
-    @Value("${info.app.description}") private String appDescription;
-    @Value("${info.app.version}") private String appVersion;
+    @Value("${info.app.name}")
+    private String appName;
+    @Value("${info.app.description}")
+    private String appDescription;
+    @Value("${info.app.version}")
+    private String appVersion;
 
     @Bean
     public OpenAPI openAPI() {

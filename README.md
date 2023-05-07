@@ -440,8 +440,116 @@ Więcej o walidacji: https://mkyong.com/spring-boot/spring-rest-validation-examp
     ```
 
 
-[//]: # (## Profiling {dev} {test} {prod} itp)
-[//]: # (## thymeleaf)
+## Profiles
+
+Przykładowe nazwy profili: `dev`,`int`,`prod`
+
+### Scenariusz nr 1
+Utwórz pliki properties: `application-dev.properties`, `application-int.properties` oraz `application-prod.properties` o poniższej zawartości:
+```properties
+# application-dev.properties:
+info.app.description=This is event manager service on DEV stage
+```
+```properties
+# application-int.properties:
+info.app.description=This is event manager service on INT stage
+```
+```properties
+# application-prod.properties:
+info.app.description=This is event manager service on PROD stage
+```
+Uruchom Spring-Boot z użyciem IntelliJ i ustaw pozycję `Active profiles` na `dev`, następnie przejdź na `http://localhost:8020/swagger-ui/index.html`
+
+### Scenariusz nr 2
+Użycie adnotacji `@Profile` w klasie `Config`
+```java
+@Configuration
+public class Config {
+
+  @Value("${info.app.name}")
+  private String appName;
+  @Value("${info.app.description}")
+  private String appDescription;
+  @Value("${info.app.version}")
+  private String appVersion;
+
+  @Bean
+  @Profile("!prod")
+  public OpenAPI openAPI() {
+
+    Info info = new Info();
+    info.setTitle(appName);
+    info.setDescription(appDescription);
+    info.setVersion(appVersion);
+
+    Contact contact = new Contact();
+    contact.name("Zbyszko");
+    contact.email("mymail@mail-server.info");
+    info.setContact(contact);
+
+    OpenAPI openAPI = new OpenAPI();
+    openAPI.setInfo(info);
+    return openAPI;
+  }
+
+  @Bean
+  @Profile("prod")
+  public OpenAPI prodOpenAPI() {
+    Info info = new Info();
+    info.setTitle(appName);
+    info.setDescription(appDescription);
+    info.setVersion(appVersion);
+
+    Contact contact = new Contact();
+    contact.name("Zbyszko on PROD");
+    contact.email("mymail-prod@mail-server.info");
+    info.setContact(contact);
+
+    OpenAPI openAPI = new OpenAPI();
+    openAPI.setInfo(info);
+    return openAPI;
+  }
+}
+```
+Usuń wartość `dev` z `active profiles` w Intellij i dodaj do pliku `application.properties`:
+
+```properties
+spring.profiles.active=prod
+```
+
+### Scenariusz nr 3 Multi-document files
+Usuń pliki: `application-dev.properties`, `application-int.properties` oraz `application-prod.properties` i ustaw wartość property w zależności od środowiska:
+```properties
+spring.application.name=event-manager-service
+management.endpoints.web.exposure.include=*
+management.endpoint.env.show-values=ALWAYS
+management.info.env.enabled=true
+info.app.name=${spring.application.name}
+info.app.description=This is event manager service
+info.app.version=0.0.1-alpha
+#---
+spring.config.activate.on-profile=dev
+info.app.description=This is event manager service on DEV
+server.port=8021
+#---
+spring.config.activate.on-profile=int
+info.app.description=This is event manager service on INT
+server.port=8022
+#---
+spring.config.activate.on-profile=prod
+info.app.description=This is event manager service on PROD
+server.port=8023
+```
+Przygotuj różne konfiguracje uruchomieniowe w IntelliJ w zaleźności od środowiska
+Zapisz tą część na oddzielnym (różnym od `master`) branch'u i wróć na poprzednią implementację na branchu `master`
+
+## OpenAPI - SpringBoot jako stub-server
+
+
+
+
+
+
 [//]: # (## RestTemplate vs WebClient)
 [//]: # (## Przykłady użycia `@Qualifier`)
 [//]: # (# RestAssured)

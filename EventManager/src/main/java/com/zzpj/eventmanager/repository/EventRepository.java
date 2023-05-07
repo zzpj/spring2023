@@ -1,6 +1,6 @@
-package com.zzpj.EventManager.repository;
+package com.zzpj.eventmanager.repository;
 
-import com.zzpj.EventManager.model.Event;
+import com.zzpj.eventmanager.model.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package com.zzpj.EventManager.exception;
+package com.zzpj.eventmanager.exception;
 
-import com.zzpj.EventManager.model.EventErrorResponse;
+import com.zzpj.eventmanager.model.EventErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;

@@ -1,4 +1,4 @@
-package com.zzpj.EventManager.model;
+package com.zzpj.eventmanager.model;
 
 import lombok.Data;
 

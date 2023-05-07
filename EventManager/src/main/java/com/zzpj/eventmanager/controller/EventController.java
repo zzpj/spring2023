@@ -1,7 +1,7 @@
-package com.zzpj.EventManager.controller;
+package com.zzpj.eventmanager.controller;
 
-import com.zzpj.EventManager.model.Event;
-import com.zzpj.EventManager.service.EventService;
+import com.zzpj.eventmanager.model.Event;
+import com.zzpj.eventmanager.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
