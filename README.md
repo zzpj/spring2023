@@ -573,7 +573,7 @@ paths:
       summary: create a new place
       operationId: createPlace
       responses:
-        201:
+        200:
           description: Created
         500:
           description: Internal Server Error
@@ -630,10 +630,6 @@ paths:
       responses:
         200:
           description: delete the place for event
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Place'
         404:
           description: the place not found
           content:
@@ -688,39 +684,150 @@ components:
   <artifactId>openapi-generator</artifactId>
   <version>${openapi-generator-version}</version>
 </dependency>
-
 <dependency>
-<groupId>org.openapitools</groupId>
-<artifactId>jackson-databind-nullable</artifactId>
-<version>0.2.6</version>
+  <groupId>org.openapitools</groupId>
+  <artifactId>jackson-databind-nullable</artifactId>
+  <version>0.2.6</version>
 </dependency>
 ```
 ```xml
 <plugin>
-    <groupId>org.openapitools</groupId>
-    <artifactId>openapi-generator-maven-plugin</artifactId>
-    <version>${openapi-generator-version}</version>
-    <executions>
-        <execution>
-            <goals>
-                <goal>generate</goal>
-            </goals>
-            <configuration>
-                <inputSpec>${project.basedir}/src/main/resources/api.yaml</inputSpec>
-                <generatorName>spring</generatorName>
-                <apiPackage>com.zzpj.openapi</apiPackage>
-                <modelPackage>com.zzpj.openapi.model</modelPackage>
-                <configOptions>
-                    <sourceFolder>src/gen/java/main</sourceFolder>
-                    <useJakartaEe>true</useJakartaEe>
-                    <interfaceOnly>true</interfaceOnly>
-                </configOptions>
-            </configuration>
-        </execution>
-    </executions>
+  <groupId>org.openapitools</groupId>
+  <artifactId>openapi-generator-maven-plugin</artifactId>
+  <version>${openapi-generator-version}</version>
+  <executions>
+    <execution>
+      <goals>
+        <goal>generate</goal>
+      </goals>
+      <configuration>
+        <inputSpec>src/main/resources/api.yaml</inputSpec>
+        <generatorName>spring</generatorName>
+        <apiPackage>com.zzpj.openapi</apiPackage>
+        <modelPackage>com.zzpj.openapi.model</modelPackage>
+        <configOptions>
+          <sourceFolder>src/gen/java/main</sourceFolder>
+          <useJakartaEe>true</useJakartaEe>
+          <interfaceOnly>true</interfaceOnly>
+        </configOptions>
+      </configuration>
+    </execution>
+  </executions>
 </plugin>
 ```
-6. Pamiętaj o "Reload All Maven Project"
+6. Pamiętaj o "Reload All Maven Project" oraz usunięciu `spring-boot-maven-plugin` (konflikt sf4j)
+7. Wygeneruj API za pomocą `mvn clean install`
+8. Stwórz `PlaceController` i nadpisz wygenerowane metody oraz przeanalizuj co się wygenerowało
+
+### MapStruct
+Dodaj do `pom.xml`:
+```xml
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.5.5.Final</version>
+        </dependency>
+```
+Stwórz klasę modelową: `PlaceDAO`
+```java
+@Data
+@AllArgsConstructor
+@Entity
+@NoArgsConstructor
+public class PlaceDAO {
+
+    @Id
+    private String id;
+
+    private String name;
+
+    private Double capacity;
+
+    private String placeType;
+
+}
+```
+Następnie `PlaceRepository`, `PlaceMapper`, `PlaceService`:
+```java
+@Repository
+public interface PlaceRepository extends JpaRepository<PlaceDAO, String> {
+}
+```
+```java
+@Mapper(componentModel = "spring")
+public interface PlaceMapper {
+
+    PlaceMapper INSTANCE = Mappers.getMapper( PlaceMapper.class );
+
+    @Mapping(source = "placeType", target = "placeType")
+    PlaceDAO toPlaceDAO(Place place);
+
+    @Mapping(source = "placeType", target = "placeType")
+    Place toPlace(PlaceDAO placeDAO);
+}
+```
+```java
+@Service
+@AllArgsConstructor
+public class PlaceService {
+    private final PlaceMapper placeMapper;
+    private final PlaceRepository placeRepository;
+
+    public void addNewPlace(Place place) {
+        PlaceDAO placeDAO = placeMapper.toPlaceDAO(place);
+        placeRepository.save(placeDAO);
+    }
+
+    public Place getPlaceById(String id) {
+        return placeRepository.findById(id).map(placeMapper::toPlace).orElseThrow();
+    }
+
+    public List<Place> getAllPlaces() {
+        return placeRepository.findAll().stream().map(placeMapper::toPlace).toList();
+    }
+
+    public void deleteById(String id) {
+        placeRepository.deleteById(id);
+    }
+}
+```
+Wprowadź zmiany w `PlaceController`:
+```java
+@RestController
+@RequiredArgsConstructor
+public class PlaceController implements PlacesApi {
+
+    private final PlaceService placeService;
+
+    @Override
+    public ResponseEntity<Void> createPlace(Place place) {
+        placeService.addNewPlace(place);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> deletePlaceById(String placeId) {
+        placeService.deleteById(placeId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<List<Place>> getAllPlaces() {
+        return ResponseEntity.ok(placeService.getAllPlaces());
+    }
+
+    @Override
+    public ResponseEntity<Place> getPlaceById(String placeId) {
+        Place placeById = placeService.getPlaceById(placeId);
+        return ResponseEntity.ok(placeById);
+    }
+}
+```
 
 ## Rest Clients (również z wykorzystaniem OpenAPI)
 [//]: # ( RestTemplate vs WebClient)
