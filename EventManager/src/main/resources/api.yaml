@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: place-manager
+  description: place description
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8020/
+    description: local dev instance
+
+paths:
+  /places:
+    get:
+      summary: get all places
+      operationId: getAllPlaces
+      responses:
+        200:
+          description: all places for events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+    post:
+      summary: create a new place
+      operationId: createPlace
+      responses:
+        200:
+          description: Created
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        409:
+          description: id conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Place'
+
+  /places/{placeId}:
+    parameters:
+      - name: placeId
+        description: the place unique id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: get place for event
+      operationId: getPlaceById
+      responses:
+        200:
+          description: the place for event provided successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+        404:
+          description: the place not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+    delete:
+      summary: deletes place for event
+      operationId: deletePlaceById
+      responses:
+        200:
+          description: delete the place for event
+        404:
+          description: the place not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceError'
+components:
+  schemas:
+    Place:
+      type: object
+      required:
+        - id
+        - name
+        - capacity
+        - placeType
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        capacity:
+          type: number
+        placeType:
+          type: string
+          enum:
+            - stadium
+            - outdoor
+            - town square
+            - park
+    PlaceError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: error message
+          type: string

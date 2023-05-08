@@ -830,7 +830,143 @@ public class PlaceController implements PlacesApi {
 ```
 
 ## Rest Clients (również z wykorzystaniem OpenAPI)
-[//]: # ( RestTemplate vs WebClient)
+Otwórz: https://start.spring.io/
+
+- Project: Maven
+- Language: Java
+- Spring Boot: 3.0.6
+- Project Metadata:
+  - group: com.zzpj
+  - artifact: eventclient
+  - name: eventclient
+  - description: demo project
+  - package com.zzpj.eventmanager
+  - packaging: Jar
+  - java: 17
+- Dependencies:
+  - Spring Web
+  - Spring Reactive Web
+
+Kliknij: **Generate**
+
+Rozpakuj, uruchom w IDE:
+```properties
+server.port=8025
+com.zzpj.serverUrl=http://localhost:8020/
+```
+```java
+@Value("${com.zzpj.serverUrl}")
+private String serverUrl;
+```
+
+### RestTemplate
+```java
+@Bean
+public RestTemplate restTemplate(RestTemplateBuilder builder) {
+	return builder.build();
+}
+
+@Bean
+public CommandLineRunner run(RestTemplate restTemplate) {
+	return args -> {
+		ResponseEntity<MyEvent> forEntity = restTemplate.getForEntity(serverUrl + "getEvent/1", MyEvent.class);
+		System.out.println("Response: " + forEntity.getBody());
+	};
+}
+```
+```java
+public record MyEvent(Long id, String name, String description, Double entranceFee, LocalDateTime startDate) {}
+```
+
+### WebClient
+```java
+@Bean
+public WebClient webClient() {
+	return WebClient.builder()
+			.baseUrl(serverUrl)
+			.build();
+}
+
+@Bean
+public CommandLineRunner run2(WebClient webClient) {
+	return args -> {
+		Mono<MyEvent> myEventMono = webClient
+				.get()
+				.uri("/getEvent/1")
+				.retrieve()
+				.bodyToMono(MyEvent.class);
+
+		System.out.println(myEventMono.block()); //TODO: lepszy sposób
+	};
+}
+```
+
+### via OpenAPI
+```xml
+<openapi-generator-version>6.5.0</openapi-generator-version>
+```
+```xml
+<dependency>
+    <groupId>org.openapitools</groupId>
+    <artifactId>openapi-generator</artifactId>
+    <version>${openapi-generator-version}</version>
+</dependency>
+<dependency>
+    <groupId>org.openapitools</groupId>
+    <artifactId>jackson-databind-nullable</artifactId>
+    <version>0.2.6</version>
+</dependency>
+```
+```xml
+<plugin>
+    <groupId>org.openapitools</groupId>
+    <artifactId>openapi-generator-maven-plugin</artifactId>
+    <version>${openapi-generator-version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+            <configuration>
+                <inputSpec>src/main/resources/api.yml</inputSpec>
+                <generatorName>java</generatorName>
+                <apiPackage>com.zzpj.openapi</apiPackage>
+                <modelPackage>com.zzpj.openapi.model</modelPackage>
+                <generateApiTests>false</generateApiTests>
+                <generateModelTests>false</generateModelTests>
+                <configOptions>
+                    <sourceFolder>src/gen/java/main</sourceFolder>
+                    <useJakartaEe>true</useJakartaEe>
+                    <library>resttemplate</library>
+                </configOptions>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Dodaj informację o serwerze:
+```yaml
+servers:
+  - url: http://localhost:8020/
+    description: local dev instance
+```
+
+Wygeneruj api: `mvn clean install` oraz dodaj:
+
+```java
+@Bean
+public DefaultApi defaultApi() {
+    return new DefaultApi();
+}
+
+@Bean public CommandLineRunner run3(DefaultApi defaultApi) {
+    return args -> {
+        List<Place> allPlaces = defaultApi.getAllPlaces();
+        System.out.println("??");
+    };
+}
+```
 ## Security
 
 ## RestAssured
