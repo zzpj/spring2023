@@ -987,14 +987,14 @@ spring.security.user.password=admin123
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public InMemoryUserDetailsManager userDetailsManager(PasswordEncoder passwordEncoder) {
-        UserDetails user = User.withUsername("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
+  @Bean
+  public UserDetailsService users(PasswordEncoder passwordEncoder) {
+    UserDetails user = User.withUsername("admin")
+            .password(passwordEncoder.encode("admin123"))
+            .roles("ADMIN")
+            .build();
+    return new InMemoryUserDetailsManager(user);
+  }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -1038,7 +1038,7 @@ public class TokenController {
                 .collect(Collectors.joining(" "));
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("it's me")
+                .issuer("self")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plusSeconds(120))
                 .subject(authentication.getName())
@@ -1061,32 +1061,33 @@ public class SecurityConfig {
     @Value("${jwt.private.key}")
     private RSAPrivateKey rsaPrivateKey;
 
-    @Bean
-    public InMemoryUserDetailsManager userDetailsManager(PasswordEncoder passwordEncoder) {
-        UserDetails user = User.withUsername("admin")
-                .password(passwordEncoder.encode("admin@123"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
-    }
+  @Bean
+  public UserDetailsService users(PasswordEncoder passwordEncoder) {
+    UserDetails user = User.withUsername("admin")
+            .password(passwordEncoder.encode("admin123"))
+            .roles("ADMIN")
+            .build();
+    return new InMemoryUserDetailsManager(user);
+  }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-      httpSecurity
-              .authorizeHttpRequests()
-              .requestMatchers("/auth").permitAll()
-              .anyRequest().hasAuthority("USER").and()
-              .csrf().disable()
-              .httpBasic(Customizer.withDefaults())
-              .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-              .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-              .exceptionHandling(exceptions -> exceptions
-                      .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                      .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
-              )
-      ;
-      return httpSecurity.build();
-    }
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    httpSecurity
+            .authorizeHttpRequests()
+            .requestMatchers("/auth", "/v3/api-docs.yaml",
+                    "/v3/api-docs/**","/swagger-ui/**", "/swagger-ui.html").permitAll()
+            .anyRequest().hasAuthority("SCOPE_ROLE_ADMIN").and()
+            .csrf().disable()
+            .httpBasic(Customizer.withDefaults())
+            .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                    .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+            )
+    ;
+    return httpSecurity.build();
+  }
 
     @Bean
     public JwtDecoder jwtDecoder() {
@@ -1117,7 +1118,7 @@ jwt.private.key=classpath:app.key
 jwt.public.key=classpath:app.pub
 ```
 
-Za pomocą Postman wygeneruj token i przeanalizuj go na: https://jwt.io/ 
+Za pomocą Postman wygeneruj token i przeanalizuj go na: https://jwt.io/. Nastepnie razem z tokenem odpal dowolny endpoint
 
 ### JWT + OpenApi
 W `SecurityConfig` uzupełnij w metodzie `filterChain`:
@@ -1125,7 +1126,7 @@ W `SecurityConfig` uzupełnij w metodzie `filterChain`:
 .requestMatchers("/auth", "/v3/api-docs.yaml", "/v3/api-docs/**","/swagger-ui/**", "/swagger-ui.html").permitAll()
 ```
 
-W klasie `Config`"
+W klasie `Config`:
 ```java
 @OpenAPIDefinition(
         security = {
@@ -1137,12 +1138,6 @@ W klasie `Config`"
                 bearerFormat = "JWT")
 })
 ```
-
-
+Odpal swaggera http://localhost:8020/swagger-ui/index.html i powtórz scenariusz z Postmanem
 
 ..eof
-
-[//]: # (## Przykłady użycia `@Qualifier`)
-[//]: # (# Zadanie do wykonania)
-[//]: # (- dodać custom validator)
-[//]: # (- dodać custom actuator zwracający nazwę projektu, wersję i autorów z grupy)
