@@ -32,7 +32,7 @@ Kliknij: **Generate**
 - Rozpakowanie zip i otwarcie w IDE
 - pom.xml
 - `@SpringBootApplication`
-- Uruchomienie 
+- Uruchomienie
 - Sprawdzenie w przeglądarce
 
 ## Convention over Configuration
@@ -44,28 +44,28 @@ Kliknij: **Generate**
 ```java
 @RestController
 public class TestController {
-    @GetMapping("/hello")
-    public String getServiceName(){
-        return "Hello world";
-    }
+  @GetMapping("/hello")
+  public String getServiceName(){
+    return "Hello world";
+  }
 }
 ```
 
 ## Testowanie API z użyciem Postman'a:
-https://www.postman.com/downloads/ 
+https://www.postman.com/downloads/
 
 ## Bardziej zaawansowany kontroler
 ```java
 @RestController
 public class TestController {
 
-    @Value("${spring.application.name}")
-    private String applicationName;
-    
-    @GetMapping("/hello/{name}")
-    public String getServiceName(@PathVariable("name") String name){
-        return "Hello" + name + "\n you are using " + applicationName;
-    }
+  @Value("${spring.application.name}")
+  private String applicationName;
+
+  @GetMapping("/hello/{name}")
+  public String getServiceName(@PathVariable("name") String name){
+    return "Hello" + name + "\n you are using " + applicationName;
+  }
 }
 ```
 
@@ -77,11 +77,11 @@ Event Model:
 @AllArgsConstructor
 public class Event {
 
-    private Long id;
-    private String name;
-    private String description;
-    private Double entranceFee;
-    private LocalDateTime startDate;
+  private Long id;
+  private String name;
+  private String description;
+  private Double entranceFee;
+  private LocalDateTime startDate;
 }
 ```
 
@@ -90,27 +90,27 @@ EventService:
 @AllArgsConstructor
 public class EventService {
 
-    private List<Event> events;
+  private List<Event> events;
 
-    public List<Event> getAllEvents() {
-        return events;
-    }
+  public List<Event> getAllEvents() {
+    return events;
+  }
 
-    public Event getEvent(Long id) {
-        List<Event> collect = events.stream().filter(e -> id.equals(e.getId())).toList();
-        return collect.size() == 1 ? collect.get(0) : null;
-    }
+  public Event getEvent(Long id) {
+    List<Event> collect = events.stream().filter(e -> id.equals(e.getId())).toList();
+    return collect.size() == 1 ? collect.get(0) : null;
+  }
 
-    public void addEvent(Event event) {
-        events.add(event);
-    }
+  public void addEvent(Event event) {
+    events.add(event);
+  }
 
-    public void deleteEvent(Long id) {
-        Event event = getEvent(id);
-        if (event != null) {
-            events.remove(event);
-        }
+  public void deleteEvent(Long id) {
+    Event event = getEvent(id);
+    if (event != null) {
+      events.remove(event);
     }
+  }
 }
 ```
 Config:
@@ -118,15 +118,15 @@ Config:
 @Configuration
 public class Config {
 
-    @Bean
-    public EventService eventService() {
-        List<Event> eventList = new ArrayList<>();
-        eventList.add(new Event(1L, "event-name", "desc", 120.0d,
-                LocalDateTime.of(2023, 12, 12, 20, 00)));
-        eventList.add(new Event(2L, "second-event-name", "desc", 100.0d,
-                LocalDateTime.of(2023, 12, 24, 10, 00)));
-        return new EventService(eventList);
-    }
+  @Bean
+  public EventService eventService() {
+    List<Event> eventList = new ArrayList<>();
+    eventList.add(new Event(1L, "event-name", "desc", 120.0d,
+            LocalDateTime.of(2023, 12, 12, 20, 00)));
+    eventList.add(new Event(2L, "second-event-name", "desc", 100.0d,
+            LocalDateTime.of(2023, 12, 24, 10, 00)));
+    return new EventService(eventList);
+  }
 }
 ```
 
@@ -136,28 +136,28 @@ EventController:
 @Slf4j
 public class EventController {
 
-    @Autowired
-    EventService eventService;
-    @GetMapping("/getAllEvents")
-    public List<Event> getAllEvents(){
-        return eventService.getAllEvents();
-    }
+  @Autowired
+  EventService eventService;
+  @GetMapping("/getAllEvents")
+  public List<Event> getAllEvents(){
+    return eventService.getAllEvents();
+  }
 
-    @GetMapping("/getEvent/{id}")
-    public Event getEvent(@PathVariable("id") Long id) {
-        log.info("Id: " + id);
-        return eventService.getEvent(id);
-    }
+  @GetMapping("/getEvent/{id}")
+  public Event getEvent(@PathVariable("id") Long id) {
+    log.info("Id: " + id);
+    return eventService.getEvent(id);
+  }
 
-    @PostMapping("/addEvent")
-    public void addEvent(@RequestBody Event event) {
-        eventService.addEvent(event);
-    }
+  @PostMapping("/addEvent")
+  public void addEvent(@RequestBody Event event) {
+    eventService.addEvent(event);
+  }
 
-    @DeleteMapping("/delete/{id}")
-    public void removeEvent(@PathVariable("id") Long id) {
-        eventService.deleteEvent(id);
-    }
+  @DeleteMapping("/delete/{id}")
+  public void removeEvent(@PathVariable("id") Long id) {
+    eventService.deleteEvent(id);
+  }
 }
 ```
 
@@ -165,9 +165,9 @@ public class EventController {
 Dodaj do pom.xml:
 ```xml
 <dependency>
-    <groupId>org.springdoc</groupId>
-    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version>2.1.0</version>
+  <groupId>org.springdoc</groupId>
+  <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+  <version>2.1.0</version>
 </dependency>
 ```
 Sprawdź: http://localhost:8020/swagger-ui/index.html
@@ -177,34 +177,34 @@ Uzupełnij dokumentację API:
     @Operation(
         summary = "Get Service Name and say hello to user",
         description = "Get Service Name and say hello to user")
-    @ApiResponses({
+@ApiResponses({
         @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "application/json") }),
         @ApiResponse(responseCode = "404", description = "Not found"),
         @ApiResponse(responseCode = "500", description = "Internal Server Error") })
-    @GetMapping("/hello/{name}")
-    public String getServiceName(@PathVariable("name") String name){
+@GetMapping("/hello/{name}")
+public String getServiceName(@PathVariable("name") String name){
         return "Hello" + name + "\n you are using " + applicationName;
-    }
+        }
 ```
 
 ```java
 @Bean
 public OpenAPI openAPI() {
 
-    Contact contact = new Contact();
-    contact.name("Zbyszko");
-    contact.email("your@email.com");
+        Contact contact = new Contact();
+        contact.name("Zbyszko");
+        contact.email("your@email.com");
 
-    Info info = new Info();
-    info.setTitle("title");
-    info.setDescription("my desc");
-    info.setVersion("1.2.3");
-    info.setContact(contact);
+        Info info = new Info();
+        info.setTitle("title");
+        info.setDescription("my desc");
+        info.setVersion("1.2.3");
+        info.setContact(contact);
 
-    OpenAPI openAPI = new OpenAPI();
-    openAPI.setInfo(info);
-    return openAPI;
-}
+        OpenAPI openAPI = new OpenAPI();
+        openAPI.setInfo(info);
+        return openAPI;
+        }
 ```
 
 ## JPA: Warstwa danych
@@ -216,13 +216,13 @@ Entity:
 @NoArgsConstructor
 public class Event {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
-    private String description;
-    private Double entranceFee;
-    private LocalDateTime startDate;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String name;
+  private String description;
+  private Double entranceFee;
+  private LocalDateTime startDate;
 }
 ```
 
@@ -238,29 +238,29 @@ Service:
 @AllArgsConstructor
 @Service
 public class EventService {
-    
-    private final EventRepository eventRepository;
 
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
-    }
+  private final EventRepository eventRepository;
 
-    public Event getEvent(Long id) {
-        return eventRepository.findById(id).orElse(null);
-    }
+  public List<Event> getAllEvents() {
+    return eventRepository.findAll();
+  }
 
-    public void addEvent(Event event) {
-        eventRepository.save(event);
-    }
+  public Event getEvent(Long id) {
+    return eventRepository.findById(id).orElse(null);
+  }
 
-    public Event updateEvent(Event event) {
-        Event updatedEvent = eventRepository.save(event);
-        return updatedEvent;
-    }
+  public void addEvent(Event event) {
+    eventRepository.save(event);
+  }
 
-    public void deleteEvent(Long id) {
-        eventRepository.deleteById(id);
-    }
+  public Event updateEvent(Event event) {
+    Event updatedEvent = eventRepository.save(event);
+    return updatedEvent;
+  }
+
+  public void deleteEvent(Long id) {
+    eventRepository.deleteById(id);
+  }
 }
 ```
 
@@ -271,43 +271,43 @@ Controller:
 @AllArgsConstructor
 public class EventController {
 
-    private final EventService eventService;
+  private final EventService eventService;
 
-    @GetMapping("/getAllEvents")
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
-    }
+  @GetMapping("/getAllEvents")
+  public List<Event> getAllEvents() {
+    return eventService.getAllEvents();
+  }
 
-    @GetMapping("/getEvent/{id}")
-    public Event getEvent(@PathVariable("id") Long id) {
-        log.info("Id: " + id);
-        return eventService.getEvent(id);
-    }
+  @GetMapping("/getEvent/{id}")
+  public Event getEvent(@PathVariable("id") Long id) {
+    log.info("Id: " + id);
+    return eventService.getEvent(id);
+  }
 
-    @PostMapping("/addEvent")
-    public void addEvent(@RequestBody Event event) {
-        eventService.addEvent(event);
-    }
+  @PostMapping("/addEvent")
+  public void addEvent(@RequestBody Event event) {
+    eventService.addEvent(event);
+  }
 
-    @PutMapping("update/{id}")
-    public Event updateEvent(@PathVariable Long id, @RequestBody Event event) {
-        return eventService.updateEvent(event);
-    }
+  @PutMapping("update/{id}")
+  public Event updateEvent(@PathVariable Long id, @RequestBody Event event) {
+    return eventService.updateEvent(event);
+  }
 
 
-    @DeleteMapping("/delete/{id}")
-    public void removeEvent(@PathVariable("id") Long id) {
-        eventService.deleteEvent(id);
-    }
+  @DeleteMapping("/delete/{id}")
+  public void removeEvent(@PathVariable("id") Long id) {
+    eventService.deleteEvent(id);
+  }
 }
 ```
 ### Walidacja danych
 Dodać:
 ```xml
 <dependency>
-    <groupId>org.hibernate</groupId>
-    <artifactId>hibernate-validator</artifactId>
-    <version>8.0.0.Final</version>
+  <groupId>org.hibernate</groupId>
+  <artifactId>hibernate-validator</artifactId>
+  <version>8.0.0.Final</version>
 </dependency>
 ```
 Przy okazji naprawia to błąd: `Unable to create a Configuration, because no Jakarta Bean Validation...`
@@ -341,8 +341,8 @@ Dodaj adnotację `@Valid`
 ```java
 @PostMapping("/addEvent")
 public void addEvent(@Valid @RequestBody Event event) {
-    eventService.addEvent(event);
-}
+        eventService.addEvent(event);
+        }
 ```
 Domyślne wiadomości w walidatorze: `hibernate-validator-8.0.0.Final.jar!\org\hibernate\validator\ValidationMessages.properties`
 
@@ -351,9 +351,9 @@ Model odpowiedzi błędnej:
 @Data
 public class EventErrorResponse {
 
-    LocalDateTime localDateTime;
-    Integer status;
-    List<String> errors;
+  LocalDateTime localDateTime;
+  Integer status;
+  List<String> errors;
 }
 ```
 
@@ -361,23 +361,23 @@ Handler obsługi błędu:
 ```java
 @ControllerAdvice
 public class EventExceptionHandler extends ResponseEntityExceptionHandler {
-    
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
-        EventErrorResponse eventErrorResponse = new EventErrorResponse();
-        eventErrorResponse.setLocalDateTime(LocalDateTime.now());
-        eventErrorResponse.setStatus(status.value());
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 
-        eventErrorResponse.setErrors(ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .toList());
+    EventErrorResponse eventErrorResponse = new EventErrorResponse();
+    eventErrorResponse.setLocalDateTime(LocalDateTime.now());
+    eventErrorResponse.setStatus(status.value());
+
+    eventErrorResponse.setErrors(ex.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+            .toList());
 
 
-        return new ResponseEntity<>(eventErrorResponse, headers, status);
-    }
+    return new ResponseEntity<>(eventErrorResponse, headers, status);
+  }
 }
 ```
 
@@ -385,22 +385,22 @@ public class EventExceptionHandler extends ResponseEntityExceptionHandler {
 Controller:
 ```java
     @Operation(
-            summary = "Adds event",
-            description = "Adds event to event list")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "application/json") }),
-            @ApiResponse(responseCode = "400", content = { @Content(schema = @Schema(implementation = EventErrorResponse.class), mediaType = "application/json") }),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error") })
-    @PostMapping("/addEvent")
-    public void addEvent(@Valid @RequestBody Event event) {
+        summary = "Adds event",
+        description = "Adds event to event list")
+@ApiResponses({
+        @ApiResponse(responseCode = "200", content = { @Content(schema = @Schema(implementation = String.class), mediaType = "application/json") }),
+        @ApiResponse(responseCode = "400", content = { @Content(schema = @Schema(implementation = EventErrorResponse.class), mediaType = "application/json") }),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error") })
+@PostMapping("/addEvent")
+public void addEvent(@Valid @RequestBody Event event) {
         eventService.addEvent(event);
-    }
+        }
 ```
-Więcej o walidacji: https://mkyong.com/spring-boot/spring-rest-validation-example/ 
+Więcej o walidacji: https://mkyong.com/spring-boot/spring-rest-validation-example/
 
 ## Actuators
 * Teoria: https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
-* Domyślny link: http://localhost:8020/actuator 
+* Domyślny link: http://localhost:8020/actuator
 * Rozszerzenie w _application.properties_: `management.endpoints.web.exposure.include=*`
 * Ciekawsze endpointy (opisz wszystkich: https://www.baeldung.com/spring-boot-actuators#3-predefined-endpoints):
   * http://localhost:8020/actuator/health
@@ -544,7 +544,7 @@ Przygotuj różne konfiguracje uruchomieniowe w IntelliJ
 Zapisz tą część na oddzielnym (różnym od `master`) branch'u i wróć na poprzednią implementację na branchu `master`
 
 ## OpenAPI - SpringBoot jako stub-server
-1. Wstęp teoretyczny w prezentacji: 
+1. Wstęp teoretyczny w prezentacji:
 2. Przegląd narzędzi do OpenAPI
 3. Stwórz `api.yaml` w `src/main/resource` albo ręcznie albo z wykorzystaniem IDE
 4. Uzupełnij:
@@ -685,9 +685,9 @@ components:
   <version>${openapi-generator-version}</version>
 </dependency>
 <dependency>
-  <groupId>org.openapitools</groupId>
-  <artifactId>jackson-databind-nullable</artifactId>
-  <version>0.2.6</version>
+<groupId>org.openapitools</groupId>
+<artifactId>jackson-databind-nullable</artifactId>
+<version>0.2.6</version>
 </dependency>
 ```
 ```xml
@@ -723,15 +723,15 @@ components:
 Dodaj do `pom.xml`:
 ```xml
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <version>1.5.5.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-processor</artifactId>
-            <version>1.5.5.Final</version>
-        </dependency>
+  <groupId>org.mapstruct</groupId>
+  <artifactId>mapstruct</artifactId>
+  <version>1.5.5.Final</version>
+</dependency>
+<dependency>
+<groupId>org.mapstruct</groupId>
+<artifactId>mapstruct-processor</artifactId>
+<version>1.5.5.Final</version>
+</dependency>
 ```
 Stwórz klasę modelową: `PlaceDAO`
 ```java
@@ -741,14 +741,14 @@ Stwórz klasę modelową: `PlaceDAO`
 @NoArgsConstructor
 public class PlaceDAO {
 
-    @Id
-    private String id;
+  @Id
+  private String id;
 
-    private String name;
+  private String name;
 
-    private Double capacity;
+  private Double capacity;
 
-    private String placeType;
+  private String placeType;
 
 }
 ```
@@ -762,38 +762,38 @@ public interface PlaceRepository extends JpaRepository<PlaceDAO, String> {
 @Mapper(componentModel = "spring")
 public interface PlaceMapper {
 
-    PlaceMapper INSTANCE = Mappers.getMapper( PlaceMapper.class );
+  PlaceMapper INSTANCE = Mappers.getMapper( PlaceMapper.class );
 
-    @Mapping(source = "placeType", target = "placeType")
-    PlaceDAO toPlaceDAO(Place place);
+  @Mapping(source = "placeType", target = "placeType")
+  PlaceDAO toPlaceDAO(Place place);
 
-    @Mapping(source = "placeType", target = "placeType")
-    Place toPlace(PlaceDAO placeDAO);
+  @Mapping(source = "placeType", target = "placeType")
+  Place toPlace(PlaceDAO placeDAO);
 }
 ```
 ```java
 @Service
 @AllArgsConstructor
 public class PlaceService {
-    private final PlaceMapper placeMapper;
-    private final PlaceRepository placeRepository;
+  private final PlaceMapper placeMapper;
+  private final PlaceRepository placeRepository;
 
-    public void addNewPlace(Place place) {
-        PlaceDAO placeDAO = placeMapper.toPlaceDAO(place);
-        placeRepository.save(placeDAO);
-    }
+  public void addNewPlace(Place place) {
+    PlaceDAO placeDAO = placeMapper.toPlaceDAO(place);
+    placeRepository.save(placeDAO);
+  }
 
-    public Place getPlaceById(String id) {
-        return placeRepository.findById(id).map(placeMapper::toPlace).orElseThrow();
-    }
+  public Place getPlaceById(String id) {
+    return placeRepository.findById(id).map(placeMapper::toPlace).orElseThrow();
+  }
 
-    public List<Place> getAllPlaces() {
-        return placeRepository.findAll().stream().map(placeMapper::toPlace).toList();
-    }
+  public List<Place> getAllPlaces() {
+    return placeRepository.findAll().stream().map(placeMapper::toPlace).toList();
+  }
 
-    public void deleteById(String id) {
-        placeRepository.deleteById(id);
-    }
+  public void deleteById(String id) {
+    placeRepository.deleteById(id);
+  }
 }
 ```
 Wprowadź zmiany w `PlaceController`:
@@ -802,30 +802,30 @@ Wprowadź zmiany w `PlaceController`:
 @RequiredArgsConstructor
 public class PlaceController implements PlacesApi {
 
-    private final PlaceService placeService;
+  private final PlaceService placeService;
 
-    @Override
-    public ResponseEntity<Void> createPlace(Place place) {
-        placeService.addNewPlace(place);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> createPlace(Place place) {
+    placeService.addNewPlace(place);
+    return ResponseEntity.ok().build();
+  }
 
-    @Override
-    public ResponseEntity<Void> deletePlaceById(String placeId) {
-        placeService.deleteById(placeId);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> deletePlaceById(String placeId) {
+    placeService.deleteById(placeId);
+    return ResponseEntity.ok().build();
+  }
 
-    @Override
-    public ResponseEntity<List<Place>> getAllPlaces() {
-        return ResponseEntity.ok(placeService.getAllPlaces());
-    }
+  @Override
+  public ResponseEntity<List<Place>> getAllPlaces() {
+    return ResponseEntity.ok(placeService.getAllPlaces());
+  }
 
-    @Override
-    public ResponseEntity<Place> getPlaceById(String placeId) {
-        Place placeById = placeService.getPlaceById(placeId);
-        return ResponseEntity.ok(placeById);
-    }
+  @Override
+  public ResponseEntity<Place> getPlaceById(String placeId) {
+    Place placeById = placeService.getPlaceById(placeId);
+    return ResponseEntity.ok(placeById);
+  }
 }
 ```
 
@@ -967,10 +967,176 @@ public DefaultApi defaultApi() {
     };
 }
 ```
+
 ## Security
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
 
-## RestAssured
+### Scenariusz nr 1A
+```properties
+spring.security.user.name=admin
+spring.security.user.password=admin123
+```
+### Scenariusz nr 1B
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
 
+    @Bean
+    public InMemoryUserDetailsManager userDetailsManager(PasswordEncoder passwordEncoder) {
+        UserDetails user = User.withUsername("admin")
+                .password(passwordEncoder.encode("admin123"))
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
+    }
+
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    httpSecurity
+            .authorizeHttpRequests()
+            .anyRequest()
+            .authenticated()
+            .and()
+            .formLogin();
+    return httpSecurity.build();
+  }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+}
+```
+
+### JWT
+Dodaj nową zależność:
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+```
+Dodaj nowy endpoint/controller np `TokenController`: 
+```java
+@AllArgsConstructor
+@RestController
+public class TokenController {
+
+    private final JwtEncoder jwtEncoder;
+
+    @PostMapping("/auth")
+    public String auth(Authentication authentication) {
+
+        String scope = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(" "));
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("it's me")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(120))
+                .subject(authentication.getName())
+                .claim("scope", scope)
+                .build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+}
+```
+Przebuduj klasę `SecurityConfig`:
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Value("${jwt.public.key}")
+    private RSAPublicKey rsaPublicKey;
+
+    @Value("${jwt.private.key}")
+    private RSAPrivateKey rsaPrivateKey;
+
+    @Bean
+    public InMemoryUserDetailsManager userDetailsManager(PasswordEncoder passwordEncoder) {
+        UserDetails user = User.withUsername("admin")
+                .password(passwordEncoder.encode("admin@123"))
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+      httpSecurity
+              .authorizeHttpRequests()
+              .requestMatchers("/auth").permitAll()
+              .anyRequest().hasAuthority("USER").and()
+              .csrf().disable()
+              .httpBasic(Customizer.withDefaults())
+              .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+              .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+              .exceptionHandling(exceptions -> exceptions
+                      .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                      .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+              )
+      ;
+      return httpSecurity.build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder() {
+        JWK jwk = new RSAKey.Builder(this.rsaPublicKey).privateKey(this.rsaPrivateKey).build();
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(new JWKSet(jwk));
+        return new NimbusJwtEncoder(jwkSource);
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+}
+```
+Wygeneruj parę kluczy: https://www.csfieldguide.org.nz/en/interactives/rsa-key-generator/ 
+- key size: 2048 bits
+- format scheme: pkcs #8 (base64)
+Utwórz pliki w _src/main/resources_: `api.key` oraz `app.pub`, skopiuj odpowiednio zawartość
+
+Dodaj w `application.properties`:
+```properties
+jwt.private.key=classpath:app.key
+jwt.public.key=classpath:app.pub
+```
+
+Za pomocą Postman wygeneruj token i przeanalizuj go na: https://jwt.io/ 
+
+### JWT + OpenApi
+W `SecurityConfig` uzupełnij w metodzie `filterChain`:
+```java
+.requestMatchers("/auth", "/v3/api-docs.yaml", "/v3/api-docs/**","/swagger-ui/**", "/swagger-ui.html").permitAll()
+```
+
+W klasie `Config`"
+```java
+@OpenAPIDefinition(
+        security = {
+                @SecurityRequirement(name = "bearerToken")
+        }
+)
+@SecuritySchemes({
+        @SecurityScheme(name = "bearerToken", type = SecuritySchemeType.HTTP, scheme = "bearer",
+                bearerFormat = "JWT")
+})
+```
 
 
 
