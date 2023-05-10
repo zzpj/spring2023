@@ -1,7 +1,8 @@
 # Spring Full Course 2023 - notatki z zajęć
-## Prezentacja
+## Prezentacje
 
-https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot.pdf
+- [Spring Boot 101 - Wprowadzenie](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot.pdf)
+- [Spring Boot 102 - Przegląd zaawansowanych funkcjonalności](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot-advanced.pdf)
 
 ## Live coding
 Otwórz: https://start.spring.io/
