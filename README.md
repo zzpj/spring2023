@@ -1140,4 +1140,4 @@ W klasie `Config`:
 ```
 Odpal swaggera http://localhost:8020/swagger-ui/index.html i powtórz scenariusz z Postmanem
 
-..eof
+(c) by Zbyszko Natkański
