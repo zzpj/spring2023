@@ -18,7 +18,7 @@
 ### Spring Cloud documentation
 * https://spring.io/projects/spring-cloud
 ### Presentation
-* [Prezentation from 2023](https://github.com/zzpj/xxx)
+* [Prezentation from 2023](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-microservices.pdf)
 
 ## Live coding scenario
 
