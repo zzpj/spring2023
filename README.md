@@ -1,4 +1,4 @@
-# Spring Full Course 2023 - notatki z zajęć
+# Spring 2023 - notatki z zajęć
 ## Prezentacje
 
 - [Spring Boot 101 - Wprowadzenie](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot.pdf)
