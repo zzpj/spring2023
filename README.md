@@ -3,7 +3,8 @@
 
 - [Spring Boot 101 - Wprowadzenie](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot.pdf)
 - [Spring Boot 102 - Przegląd zaawansowanych funkcjonalności](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-springboot-advanced.pdf)
-- [Mikroserwisy - prezentacja](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-microservices.pdf) [Livecoding](https://github.com/zzpj/spring2023/blob/master/microservices.md)
+- [Mikroserwisy - prezentacja](https://github.com/zzpj/spring2023/blob/master/ZZPJ2023-microservices.pdf)
+	- [Livecoding](https://github.com/zzpj/spring2023/blob/master/microservices.md)
 
 ## Live coding
 Otwórz: https://start.spring.io/
