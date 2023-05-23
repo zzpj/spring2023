@@ -25,204 +25,308 @@
 ### Discovery Server Installation and Configuration
 1. Enter [Spring Initializr website](https://start.spring.io/)
 1. Complete Metadata section
-1. Select following dependencies: Spring Web, Eureka Server, Spring Boot Actuator
-1. (2022) Select Spring Boot version: *2.7.0* and determine your jdk version *(17)*
+1. (2023) Select Spring Boot version: *3.0.7* and determine your jdk version: *(17)*
+1. Select following dependencies: Spring Web & Eureka Server
 1. Click Generate button and download zipped package.
 1. Unzip package and open generated project in IntelliJ
 1. Open main class with `@SpringBootApplication` annotation
 1. Use Spring Cloud’s `@EnableEurekaServer` to stand up a registry with which other applications can communicate. This is a regular Spring Boot application with one annotation added to enable the service registry.
 1. By default, the registry also tries to register itself, so you need to disable that behavior as well in  `application.properties` file.
-    ```properties
-    eureka.client.register-with-eureka=false
-    eureka.client.fetch-registry=false
-    ```
+	```properties
+	eureka.client.register-with-eureka=false
+	eureka.client.fetch-registry=false
+	```
 1. Select the port which will be used by Eureka Server 
-    ```properties
-    server.port=8761
-    ```
+	```properties
+	server.port=8761
+	```
 1. Enter the URL: `http://localhost:8761/`
 
-### Implementing First Discovery Client
-1. Open again [Spring Initializr website](https://start.spring.io/)
-1. Complete Metadata section: set Artifact name as `UserManagerService`
-1. Select following dependencies: Lombok, Spring Web, Eureka Discovery Client, Spring Boot Actuator
-1. Click Generate button, download and unzip package
+### Register first service: EventManager
+1. Open `EventManager` project
+1. Complete `pom.xml`:
+	```xml
+	<spring-cloud.version>2022.0.2</spring-cloud.version>
+	```
+	```xml
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+	```
+	```xml
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	```
 1. Add annotation `@EnableDiscoveryClient` to main class
 1. Add some properties into `application.properties`
-    ```properties
-    server.port=8010
-    spring.application.name=user-manager-service
-    eureka.client.serviceUrl.defaultZone=${EUREKA_URL:http://localhost:8761/eureka/}
-    ```
-1. Run `UserManagerService` Application and determine if service has been registered in Eureka Discovery Server by entering `http://localhost:8761/` or using logs.
-1. Prepare webservice providing simple API, it will be useful in next part of exercise
-1. Add `management.endpoints.web.exposure.include=*` property into your  `application.properties` file in order to see how actuators work
-1. Rerun `UserManagerService` and go to `http://localhost:8010/actuator/`. For more info about actuators, refer [documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html) 
-1. Add snippet below to display some basic information about our service
-   ```properties
-      info.app.name=${spring.application.name}
-      info.app.description=This is my first spring boot application
-      info.app.version=1.0.0
-   ```
+	```properties
+	eureka.client.serviceUrl.defaultZone=${EUREKA_URL:http://localhost:8761/eureka/}
+	eureka.client.fetch-registry=true
+	eureka.client.register-with-eureka=true
+	```
+1. Run `EventManager` application and determine if service has been registered in Eureka Discovery Server by entering `http://localhost:8761/` or using logs.
+1. Complete `SecurityConfig` class by adding missing excluded path:
+	```java
+	 .requestMatchers("/auth", "/v3/api-docs.yaml", "/actuator/info",
+	```
 
-### Register second client for consuming your web service
-1. Open again [Spring Initializr website](https://start.spring.io/)
-1. Complete Metadata section: set Artifact name as `UserConsumerService`
-1. Select following dependencies: Lombok, Spring Web, Eureka Discovery Client, Spring Boot Actuator, Spring Reactive Web, Cloud LoadBalancer*, Config Client* (*-future usage)
-1. Click Generate button, download and unzip package
-1. Copy unzipped `UserConsumerService` folder into your project folder
+### Register second service: EventClient
+1. there is some auth steps to take first:
+   1. Add to api.yaml
+       ```yaml
+      security:
+        - bearerAuth: []
+       ```
+	   ```yaml
+		 securitySchemes:
+		   bearerAuth:
+		    type: http
+		    scheme: bearer
+		    bearerFormat: JWT
+	   ```
+   1. Update `EventClientApplication`:
+      ```java
+       @Value("${com.zzpj.url}")
+       private String serverUrl;
+	
+       public static void main(String[] args) {
+         SpringApplication.run(EventClientApplication.class, args);
+       }
+	
+       @Bean
+       public RestTemplate restTemplate(RestTemplateBuilder builder) {
+         return builder
+                    .basicAuthentication("admin", "admin123")
+                    .build();
+       }
+	
+       @Bean
+       public String jwtToken(RestTemplate restTemplate) {
+         ResponseEntity<String> response = restTemplate.postForEntity(serverUrl + "/auth", null, String.class);
+         return response.getBody();
+       }
+	
+       @Bean
+       public DefaultApi defaultApi(String jwtToken) {
+         DefaultApi defaultApi = new DefaultApi();
+         defaultApi.getApiClient().setBearerToken(jwtToken);
+         return defaultApi;
+       }
+	
+       @Bean
+       public CommandLineRunner getAll(DefaultApi api) {
+           return args -> {
+             List<Place> allPlaces = api.getAllPlaces();
+             allPlaces.forEach(System.out::println);
+           };
+       }
+      ```
+    1. Check if it is working by adding new place and displaying all
+1. Complete `pom.xml`:
+	```xml
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-actuator</artifactId>
+	</dependency>
+	```
+	```xml
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	```
+	
+	```xml
+	<spring-cloud.version>2022.0.2</spring-cloud.version>
+	```
 1. Add annotation `@EnableDiscoveryClient` to main class
-1. Add some properties into `application.properties`
-    ```properties
-    server.port=8020
-
-    spring.application.name=user-consumer-service
-    eureka.client.serviceUrl.defaultZone=${EUREKA_URL:http://localhost:8761/eureka/}
+1. Add to `application.properties`:
+	```properties
+	server.port=8035
+	
+	spring.application.name=event-client-app
 	
 	management.endpoints.web.exposure.include=*
-    ```
-1. Run `UserConsumerService` application and determine if service has been registered in Eureka Discovery Server by entering `http://localhost:8761/` or using logs.
-1. Prepare `UserConsumer` class which will be a client for prepared in previous section user web service.
-	```java
-	@Configuration
-	public class WebClientConfig {
-
-		@Bean
-		public WebClient userManagerWebClient() {
-			return WebClient.builder().build();
-		}
-	}
+	management.endpoint.env.show-values=ALWAYS
+	
+	management.info.env.enabled=true
+	info.app.name=${spring.application.name}
+	info.app.description=This is event client app
+	info.app.version=0.0.1-alpha
+	
+	eureka.client.serviceUrl.defaultZone=${EUREKA_URL:http://localhost:8761/eureka/}
+	eureka.client.fetch-registry=true
+	eureka.client.register-with-eureka=true
 	```
-
+1. Add new controller:
 	```java
 	@RestController
-	public class UserConsumerController {
-
-		@Autowired
-		WebClientConfig webClientConfig;
-
-		@GetMapping("/getInfo")
-		public String getUserAppInfo() {
-
-			Mono<String> stringMono = webClientConfig.userManagerWebClient()
-					.get()
-					.uri("http://localhost:8010/info")
-					.retrieve()
-					.bodyToMono(String.class);
-
-			return stringMono.block();
-
+	public class EventClientController {
+	
+		private final DefaultApi defaultApi;
+	
+		public EventClientController(DefaultApi defaultApi) {
+			this.defaultApi = defaultApi;
 		}
-
-		@GetMapping("/getUsers")
-		public List<?> getUsers() {
-
-			Mono<List> listMono = webClientConfig
-					.userManagerWebClient().get()
-					.uri("http://localhost:8010/users")
-					.retrieve()
-					.bodyToMono(List.class);
-			return listMono.block();
+	
+		@GetMapping("/getAllPlaces")
+		public String getAllPlaces() {
+			return defaultApi.getAllPlaces().toString();
 		}
 	}
 	```
-1. Verify and go to URL: `http://localhost:8020/`
-
-Useful links:
-[1](https://spring.io/guides/gs/service-registration-and-discovery/)
-[2](https://spring.io/guides/tutorials/rest/)
-[3](https://www.baeldung.com/spring-webflux)
+1. Verify and go to URL: `http://localhost:8035/getAllPlaces`
 
 ### Spring Cloud Client Load balancer 
-1. Stop running `UserManagerService` and comment `server.port` properties
-1. Run two (or more) instances using Spring Boot Run Configuration, use Environment > VM Options for setting ports: `-Dserver.port=8011`
-1. Refresh Eureka Discovery page and determine if both instances of the same service are available 
-1. Let's use web flux client
+1. Stop running `EventManager` and comment `server.port` properties
+1. Provide changes in `TestController`:
 	```java
 	@RestController
-	public class UserConsumerController {
-
-		@Autowired
-		private WebClientConfig webClientConfig;
-
-		@GetMapping("/getInfo")
-		public String getInfoX() {
-			return webClientConfig.webClient()
-					.get()
-					.uri("http://user-manager/info")
-					.retrieve()
-					.bodyToMono(String.class)
-					.block();
-		}
-	}	
-	```
-1. While preparing bean of `webClientConfig`, remember about proper autowired filter and add `@LoadBalancerClient` annotation
-	```java
-	@LoadBalancerClient(name = "user-manager", configuration = UserManagerInstanceConfig.class)
-	public class WebClientConfig {
-
-		@Autowired
-		private ReactorLoadBalancerExchangeFilterFunction lbFunction;
-
-		@LoadBalanced
-		@Bean
-		public WebClient webClient() {
-			return WebClient.builder()
-					.filter(lbFunction)
-					.build();
+	public class TestController {
+	
+		@Value("${spring.application.name}")
+		private String applicationName;
+	
+		@Value("${server.port}")
+		private String appPort;
+	
+		@Operation(summary = "get service name", description = "tris is get service name endpoint")
+		@ApiResponses({
+				@ApiResponse(responseCode = "200", description = "stardard sucessful output"),
+				@ApiResponse(responseCode = "404", description = "Not found"),
+				@ApiResponse(responseCode = "500", description = "Internal Server Error")
+		})
+		@GetMapping("/hello/{name}")
+		public String getServiceName(@PathVariable("name") String name) {
+			return "Hello " + name + " \n you are using " + applicationName + " on port: " + appPort;
 		}
 	}
 	```
-1. Prepare load balancer config:
+1. Unsecure path in `SecurityConfig`:
 	```java
-	@Configuration
-	public class UserManagerInstanceConfig {
-
-		@Bean
-		public ServiceInstanceListSupplier serviceInstanceListSupplier(){
-			return new UserManagerSupplier("user-manager");
-		}
-	}
+	.requestMatchers("/auth", "/v3/api-docs.yaml", "/actuator/info", "/hello/**",
 	```
-1. Define implementation for service instance list supplier
+1. Run two (or more) instances using Spring Boot Run Configuration, use Environment > VM Options for setting ports: `-Dserver.port=8021`
+1. Use `services tab` in IntelliJ to run them all
+1. Refresh Eureka Discovery page and determine if both instances of the same service are available
+1. Add load balancer dependency in `EventClient` project
+	```xml
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-loadbalancer</artifactId>
+	</dependency>
+	```
+1. Modify `restTemplate` object and add new bean: 
 	```java
-	public class UserManagerSupplier implements ServiceInstanceListSupplier {
-
+    @Bean
+    @LoadBalanced
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder
+                .basicAuthentication("admin", "admin123")
+                .build();
+    }
+    @Bean
+    public ServiceInstanceListSupplier serviceInstanceListSupplier() {
+        return new EventManagerSupplier("event-manager-service");
+    }
+	```
+1. `EventManagerSupplier` implementation:
+	```java
+	public class EventManagerSupplier implements ServiceInstanceListSupplier {
+	
 		private final String serviceId;
-
-		public UserManagerSupplier(String serviceId) {
+	
+		public EventManagerSupplier(String serviceId) {
 			this.serviceId = serviceId;
 		}
-
+	
 		@Override
 		public String getServiceId() {
 			return serviceId;
 		}
-
+	
 		@Override
 		public Flux<List<ServiceInstance>> get() {
-
-			DefaultServiceInstance int1 = new DefaultServiceInstance(serviceId + "1", serviceId, "localhost", 8011, false);
-			DefaultServiceInstance int2 = new DefaultServiceInstance(serviceId + "2", serviceId, "localhost", 8012, false);
-			DefaultServiceInstance int3 = new DefaultServiceInstance(serviceId + "3", serviceId, "localhost", 8013, false);
-			return Flux.just(Stream.of(int1
-					, int2
-					, int3
-			).collect(Collectors.toList()));
+			ServiceInstance int1 = new DefaultServiceInstance(serviceId + "1", serviceId, "localhost", 8020, false);
+			ServiceInstance int2 = new DefaultServiceInstance(serviceId + "2", serviceId, "localhost", 8021, false);
+			ServiceInstance int3 = new DefaultServiceInstance(serviceId + "3", serviceId, "localhost", 8022, false);
+			return Flux.just(Stream.of(int1, int2, int3).toList());
 		}
 	}
 	```
-1. Verify and go to URL: `http://localhost:8020/getInfo`
+1. Changes in: `EventClientController`:
+	```java
+	@RestController
+	public class EventClientController {
+	
+		private final DefaultApi defaultApi;
+	
+		private final RestTemplate restTemplate;
+	
+		public EventClientController(DefaultApi defaultApi, RestTemplate restTemplate) {
+			this.defaultApi = defaultApi;
+			this.restTemplate = restTemplate;
+		}
+	
+		@GetMapping("/getAllPlaces")
+		public String getAllPlaces() {
+			return defaultApi.getAllPlaces().toString();
+		}
+	
+		@GetMapping("/getHello")
+		public String getHello() {
+			ResponseEntity<String> forEntity = restTemplate.getForEntity("http://event-manager-service/hello/xxx", String.class);
+			return forEntity.getBody();
+		}
+	}
+	```
+1. Verify and go to URL: `http://localhost:8035/getHello`
+2. OpenAPI case by modifying `api.yaml``:
+	```yaml
+	servers:
+	  - url: http://localhost:{port}/
+		description: local dev instance
+		variables:
+		  port:
+			default: '8020'
+			enum:
+			  - '8020'
+			  - '8021'
+			  - '8022'
+	```
+1. Run mvn:  `mvn clean install`
+2. Rerun `EventClient` and go to URL: `http://localhost:8035/getAllPlaces`
 
 
-### Config Server
+### Config Server [TODO]
 #### Prepare Config Server Implementation
 1. Open again [Spring Initializr website](https://start.spring.io/)
 1. Complete Metadata section: set Artifact name as `UserConfigServer`
 1. Select following dependencies: Lombok, Spring Web, Eureka Discovery Client, Spring Boot Actuator, Config Server
 1. Click Generate button, download and unzip package
 1. Copy unzipped `UserConfigServer` folder into your project folder
-1. Add follwing annotations: `@EnableEurekaClient` & `@EnableConfigServer` into main class
+1. Add following annotations: `@EnableEurekaClient` & `@EnableConfigServer` into main class
 1. Add some properties into `application.properties`
 	```properties
 	server.port=8061
