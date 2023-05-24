@@ -5,8 +5,18 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:8020/
+  - url: http://localhost:{port}/
     description: local dev instance
+    variables:
+      port:
+        default: '8020'
+        enum:
+          - '8020'
+          - '8021'
+          - '8022'
+
+security:
+  - bearerAuth: []
 
 paths:
   /places:
@@ -126,3 +136,8 @@ components:
         message:
           description: error message
           type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

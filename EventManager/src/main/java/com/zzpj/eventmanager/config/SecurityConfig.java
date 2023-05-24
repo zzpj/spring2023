@@ -62,7 +62,7 @@ public class SecurityConfig {
 
         httpSecurity
                 .authorizeHttpRequests()
-                .requestMatchers("/auth", "/v3/api-docs.yaml",
+                .requestMatchers("/auth", "/v3/api-docs.yaml", "/actuator/info", "/hello/**",
                         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().hasAuthority("SCOPE_ROLE_ADMIN").and()
                 .csrf().disable()

@@ -14,6 +14,9 @@ public class TestController {
     @Value("${spring.application.name}")
     private String applicationName;
 
+    @Value("${server.port}")
+    private String portNumber;
+
     @Operation(summary = "get service name", description = "tris is get service name endpoint")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "stardard sucessful output"),
@@ -22,6 +25,6 @@ public class TestController {
     })
     @GetMapping("/hello/{name}")
     public String getServiceName(@PathVariable("name") String name) {
-        return "Hello " + name + " \n you are using " + applicationName;
+        return "Hello " + name + " \n you are using " + applicationName + " port number: " + portNumber;
     }
 }
