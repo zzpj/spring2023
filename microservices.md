@@ -321,10 +321,10 @@
 #### Prepare Config Server Implementation
 1. Open [Spring Initializr website](https://start.spring.io/)
 1. Complete Metadata section: set Artifact name as `EventConfigServer`
-1. Select following dependencies: Lombok, Spring Web, Eureka Discovery Client, Spring Boot Actuator, Config Server
+1. Select following dependencies: Spring Web, Eureka Discovery Client, Config Server
 1. Click Generate button, download and unzip package
 1. Copy unzipped `EventConfigServer` folder into your project folder
-1. Add following annotations: `@EnableEurekaClient` & `@EnableConfigServer` into main class
+1. Add following annotations: `@@EnableDiscoveryClient` & `@EnableConfigServer` into main class
 1. Add some properties into `application.properties`
 	```properties
 	server.port=8061
@@ -337,8 +337,6 @@
 	spring.cloud.config.server.git.default-label=main
 	#spring.cloud.config.server.git.default-label=master
 	spring.cloud.config.server.git.clone-on-start=true
-
-	management.endpoints.web.exposure.include=*
 	```
 1. Run config server project & determine eureka main page
 #### Prepare either local repo or github once
@@ -346,7 +344,7 @@
 1. OR create new repo in github
 
 #### Move properties of created services 
-1. Complete pom.xml of `EventClient`
+1. Complete `pom.xml` of `EventClient`
 	```xml
 	<dependency>
 		<groupId>org.springframework.cloud</groupId>
@@ -365,22 +363,12 @@
 	```
 1. Add properties check with use of `@Value` annotation
 	```java
-	@Value("${general.message}")
-	private String generalMessage;
-
-	@Value("${com.general.message}")
-	private String com_generalMessage;
-	```
-
-	```java
-    @GetMapping("/getProps")
-    public String getPropertiesInfo() {
-
-        MutablePropertySources propertySources = ((AbstractEnvironment) environment).getPropertySources();
-
-        System.out.println(generalMessage);
-        System.out.println(com_generalMessage);
-        return generalMessage + " " + com_generalMessage;
+    @Value("${config.server.demo}")
+    private String greetings;
+ 
+    @GetMapping("/getGreetings")
+    public String getGreetings() {
+        return "Property value: " + greetings;
     }
 	```
 1. Remember about following properties naming rules
