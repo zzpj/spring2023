@@ -279,11 +279,9 @@
 	```java
 	@RestController
 	public class EventClientController {
-	
 		private final DefaultApi defaultApi;
-	
 		private final RestTemplate restTemplate;
-	
+
 		public EventClientController(DefaultApi defaultApi, RestTemplate restTemplate) {
 			this.defaultApi = defaultApi;
 			this.restTemplate = restTemplate;
@@ -302,35 +300,35 @@
 	}
 	```
 1. Verify and go to URL: `http://localhost:8035/getHello`
-2. OpenAPI case by modifying `api.yaml``:
+2. OpenAPI case by modifying `api.yaml`:
 	```yaml
 	servers:
-	  - url: http://localhost:{port}/
-		description: local dev instance
-		variables:
-		  port:
-			default: '8020'
-			enum:
-			  - '8020'
-			  - '8021'
-			  - '8022'
+      - url: http://localhost:{port}/
+          description: local dev instance
+          variables:
+            port:
+              default: '8020'
+              enum:
+                - '8020'
+                - '8021'
+                - '8022'
 	```
 1. Run mvn:  `mvn clean install`
 2. Rerun `EventClient` and go to URL: `http://localhost:8035/getAllPlaces`
 
 
-### Config Server [TODO]
+### Config Server
 #### Prepare Config Server Implementation
-1. Open again [Spring Initializr website](https://start.spring.io/)
-1. Complete Metadata section: set Artifact name as `UserConfigServer`
+1. Open [Spring Initializr website](https://start.spring.io/)
+1. Complete Metadata section: set Artifact name as `EventConfigServer`
 1. Select following dependencies: Lombok, Spring Web, Eureka Discovery Client, Spring Boot Actuator, Config Server
 1. Click Generate button, download and unzip package
-1. Copy unzipped `UserConfigServer` folder into your project folder
+1. Copy unzipped `EventConfigServer` folder into your project folder
 1. Add following annotations: `@EnableEurekaClient` & `@EnableConfigServer` into main class
 1. Add some properties into `application.properties`
 	```properties
 	server.port=8061
-	spring.application.name=user-config-server
+	spring.application.name=event-config-server
 
 	eureka.client.serviceUrl.defaultZone=${EUREKA_URL:http://localhost:8761/eureka/}
 
@@ -348,18 +346,18 @@
 1. OR create new repo in github
 
 #### Move properties of created services 
-1. Complete pom.xml of User Consumer Service
+1. Complete pom.xml of `EventClient`
 	```xml
 	<dependency>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-starter-config</artifactId>
 	</dependency>
 	```
-1. Go to `application.properties` file from "user consumer service" and add:
+1. Go to `application.properties` files and add:
 	```properties
 	spring.config.import=optional:configserver:
 	spring.cloud.config.discovery.enabled=true
-	spring.cloud.config.discovery.service-id=user-config-server
+	spring.cloud.config.discovery.service-id=event-config-server
 	spring.cloud.config.name=${spring.application.name}
 	spring.cloud.config.profile=dev
 	spring.cloud.config.label=main
