@@ -379,3 +379,97 @@
 	/{application}-{profile}.properties
 	/{label}/{application}-{profile}.properties
 	```
+
+### Keycloak
+[Instalacja do pobrania](https://www.keycloak.org/downloads) lub [obraz dockerowy](https://quay.io/repository/keycloak/keycloak), a także niezbędna [dokumentacja](https://www.keycloak.org/guides#getting-started). Następnie, [krok po kroku jak zacząć](https://www.keycloak.org/getting-started/getting-started-zip).
+
+Podstawowe pojęcia:
+- Realm
+- OAuth
+- User/Role/Client/Federation Provider
+
+1. Uruchom keycloak
+1. Ustaw kredki dla root admin'a
+1. Przedstaw poszczególne linki
+1. Stwórz:
+   - nowy realm
+     - zakładka _General_
+       - ustaw: Display name
+     - zakładka _Login_
+       - User registration: On 
+       - Forgot password: On 
+       - Remember me: On
+       - Verify email: Off
+     - zakładka _themes_
+       - wszystko prefiksowane keycloak-
+     - zakładka _Localization_
+       - dodać obsługę języka polskiego
+   - nowego klienta
+       - zakładka _Credentials_
+         - Client Authenticator: client id and secret
+         - wygeneruj `Client secret`
+       - zakładka _Settings_ 
+         - root url: `http://localhost:8090`
+         - valid redirect urls: `/*`
+         - Client authentication: on
+         - Authorization: on
+         - Login theme: keycloak
+   - nowego użytkownika (pole 'Required user actions' puste) + ew jakieś role
+1. Postman:
+   ```
+   client_id:<your_client_id>
+   username:<your_username>
+   password:<your_password>
+   grant_type:password
+   client_secret:<secret>
+   ```
+1. Aplikacja w springu
+   1. start.spring.io: wersja 3.0.7, web, oauth2-client, security, web
+   2. plik `application.properties`:
+   ```yaml
+    spring.application.name=event-user-app
+    server.port=8090
+	
+    spring.security.oauth2.client.registration.keycloak.client-id=event-app-client
+    spring.security.oauth2.client.registration.keycloak.client-secret=WDn7qJ0VYrsAdfd3ayaXVKljBKImN3UN
+    spring.security.oauth2.client.registration.keycloak.authorization-grant-type=authorization_code
+    spring.security.oauth2.client.registration.keycloak.scope=openid
+	
+    spring.security.oauth2.client.provider.keycloak.issuer-uri=http://localhost:8080/realms/event_users
+    ```
+   3. klasa `SecurityConfig`:
+   ```yaml
+    @Configuration
+    @EnableWebSecurity
+    public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http.authorizeHttpRequests()
+                .requestMatchers("/external").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .oauth2Login()
+        ;
+        return http.build();
+    }
+    }
+   ```
+   4. klasa `InfoController`:
+   ```yaml
+    @RestController
+    public class InfoController {
+    
+        @GetMapping("/internal")
+        public String getSecretInfo() {
+            return "secrets info";
+        }
+    
+        @GetMapping("/external")
+        public String getMessageAll() {
+            return "message all";
+        }
+    }
+    ```
+   5. Sprawdzenie w przeglądarce
