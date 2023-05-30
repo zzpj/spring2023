@@ -388,7 +388,9 @@ Podstawowe pojęcia:
 - OAuth
 - User/Role/Client/Federation Provider
 
-1. Uruchom keycloak
+1. Pobierz keycloak ze strony i rozpakuj
+1. Otwórz conf/keycloak.conf i dodaj: `http-port=8999`
+1. Uruchom keycloak w powershell: `bin\kc.bat start-dev`
 1. Ustaw kredki dla root admin'a
 1. Przedstaw poszczególne linki
 1. Stwórz:
@@ -423,7 +425,7 @@ Podstawowe pojęcia:
    grant_type:password
    client_secret:<secret>
    ```
-1. Aplikacja w springu
+1. Aplikacja w Springu
    1. start.spring.io: wersja 3.0.7, web, oauth2-client, security, web
    2. plik `application.properties`:
    ```yaml
@@ -472,4 +474,96 @@ Podstawowe pojęcia:
         }
     }
     ```
-   5. Sprawdzenie w przeglądarce
+   5. Sprawdzenie w przeglądarce: logowanie+rejestracja: `http://localhost:8090/internal`
+
+2. Dodaj _Github_ Identity Provider
+   1. Dodaj OAuth app poprzez stronę Github'a
+   1. Uzupełnij _Client ID_ & _Client Secret_
+   1. Ustaw na stronie Github'a odpowiednio skopiowany _Redirect URI_
+   1. Zaawansowane ustawienia na _off_, _First login flow_: first broker login
+   1. Zapisz i sprawdź: `http://localhost:8090/internal` poprzez logowanie się z kredkami z github'a
+   1. Dodaj drugiego użytkownika z githuba (zbychooo) 
+
+1. Logout
+   1. Stwórz nową klasę `KeycloakLogoutHandler`:
+   ```java
+    @Component
+    public class KeycloakLogoutHandler implements LogoutHandler {
+    
+        private RestTemplate restTemplate;
+    
+        public KeycloakLogoutHandler() {
+            this.restTemplate = new RestTemplate();
+        }
+    
+        @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+        private String issuerUrl;
+    
+        @Override
+        public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    
+            String logoutEndpoint = issuerUrl + "/protocol/openid-connect/logout";
+    
+            UriComponentsBuilder builder = UriComponentsBuilder
+                    .fromUriString(logoutEndpoint)
+                    .queryParam("id_token_hint", ((OidcUser) authentication.getPrincipal()).getIdToken().getTokenValue());
+    
+            ResponseEntity<String> logoutResponse = new RestTemplateBuilder().build().getForEntity(builder.toUriString(), String.class);
+            if (logoutResponse.getStatusCode().is2xxSuccessful()) {
+                System.out.println("ok");
+            } else {
+                System.out.println("not ok");
+            }
+    
+        }
+    }
+   ```
+   2. Uzupełnij `SecurityConfig`:
+    ```java
+    private final KeycloakLogoutHandler keycloakLogoutHandler;
+
+    public SecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
+        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http.authorizeHttpRequests()
+                .requestMatchers("/external").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .oauth2Login()
+                .and()
+                .logout()
+                .addLogoutHandler(keycloakLogoutHandler)
+                .logoutSuccessUrl("/external")
+        ;
+        return http.build();
+    }
+    ```
+
+   3. Uzupełnij `InfoController`:
+    ```java
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request) throws ServletException {
+        request.logout();
+        return "redirect:/";
+     }
+   ```
+   4. Login i logout dla user'ów: `http://localhost:8090/logout`
+
+1. Zarządzenie użytkownikami
+    - z poziomu panelu admina
+    - indywidualne UI dla każdego user'a
+    ```java
+     @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
+     private String issuerUrl;
+
+     @GetMapping("/profile")
+     public void profile(HttpServletResponse response)  {
+        response.setHeader("Location", issuerUrl + "/account");
+        response.setStatus(302);
+     }
+    ```
+    - poprzez Keycloack Rest API
