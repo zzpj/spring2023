@@ -566,4 +566,65 @@ Podstawowe pojęcia:
         response.setStatus(302);
      }
     ```
-    - poprzez Keycloack Rest API
+    - poprzez Keycloak Rest API
+      - dodaj do pom'a:
+        ```xml
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>21.1.1</version>
+        </dependency>
+        ```         
+      - dodaj implementacje klas:
+        ```java
+        @Configuration
+        public class KeycloakUserConfig {
+    
+        @Bean
+        Keycloak keycloak() {
+            return KeycloakBuilder.builder()
+                    .serverUrl("http://localhost:8999")
+                    .realm("master")
+                    .clientId("admin-cli")
+                    .grantType(OAuth2Constants.PASSWORD)
+                    .username("admin")
+                    .password("admin")
+                    .build();
+          }
+        }
+        ```
+        ```java
+				@Component
+				public class KeycloakUserService {
+
+					private static final String EVENT_APP_REALM = "event_app";
+					private final Keycloak keycloak;
+
+					public KeycloakUserService(Keycloak keycloak) {
+						this.keycloak = keycloak;
+					}
+
+					public List<UserRepresentation> findByUsername(String name, boolean exact) {
+						return keycloak.realm(EVENT_APP_REALM)
+								.users()
+								.searchByUsername(name, exact);
+					}
+				}
+        ```    
+        ```java
+			@RestController
+			public class KeycloakUserController {
+
+				private final KeycloakUserService keycloakUserService;
+
+				public KeycloakUserController(KeycloakUserService keycloakUserService) {
+					this.keycloakUserService = keycloakUserService;
+				}
+
+				@GetMapping("/findUsers/{name}")
+				public List<UserRepresentation> findUsers(@PathVariable("name") String name, @QueryParam("exact") Boolean exact) {
+					return keycloakUserService.findByUsername(name, exact);
+				}
+			}
+        ```
+      - weryfikacja: `http://localhost:8090/findUsers/z?exact=false`
