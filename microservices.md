@@ -567,16 +567,15 @@ Podstawowe pojęcia:
      }
     ```
     - poprzez Keycloak Rest API
-     - dodaj do pom'a:
         ```xml
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
             <version>21.1.1</version>
         </dependency>
-        ```         
-     - dodaj implementacje klas:
-        ```java
+        ```
+        
+	```java
         @Configuration
         public class KeycloakUserConfig {
     
@@ -592,8 +591,7 @@ Podstawowe pojęcia:
                     .build();
           }
         }
-        ```
-        ```java
+	// ----
 	@Component
 	public class KeycloakUserService {
 
@@ -610,8 +608,8 @@ Podstawowe pojęcia:
 					.searchByUsername(name, exact);
 		}
 	}
-        ```    
-        ```java
+	```
+	```java
 	@RestController
 	public class KeycloakUserController {
 
@@ -626,5 +624,5 @@ Podstawowe pojęcia:
 			return keycloakUserService.findByUsername(name, exact);
 		}
 	}
-        ```
+	```
      - weryfikacja: `http://localhost:8090/findUsers/z?exact=false`
