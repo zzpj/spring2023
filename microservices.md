@@ -594,37 +594,37 @@ Podstawowe pojęcia:
         }
         ```
         ```java
-				@Component
-				public class KeycloakUserService {
+	@Component
+	public class KeycloakUserService {
 
-					private static final String EVENT_APP_REALM = "event_app";
-					private final Keycloak keycloak;
+		private static final String EVENT_APP_REALM = "event_app";
+		private final Keycloak keycloak;
 
-					public KeycloakUserService(Keycloak keycloak) {
-						this.keycloak = keycloak;
-					}
+		public KeycloakUserService(Keycloak keycloak) {
+			this.keycloak = keycloak;
+		}
 
-					public List<UserRepresentation> findByUsername(String name, boolean exact) {
-						return keycloak.realm(EVENT_APP_REALM)
-								.users()
-								.searchByUsername(name, exact);
-					}
-				}
+		public List<UserRepresentation> findByUsername(String name, boolean exact) {
+			return keycloak.realm(EVENT_APP_REALM)
+					.users()
+					.searchByUsername(name, exact);
+		}
+	}
         ```    
         ```java
-			@RestController
-			public class KeycloakUserController {
+	@RestController
+	public class KeycloakUserController {
 
-				private final KeycloakUserService keycloakUserService;
+		private final KeycloakUserService keycloakUserService;
 
-				public KeycloakUserController(KeycloakUserService keycloakUserService) {
-					this.keycloakUserService = keycloakUserService;
-				}
+		public KeycloakUserController(KeycloakUserService keycloakUserService) {
+			this.keycloakUserService = keycloakUserService;
+		}
 
-				@GetMapping("/findUsers/{name}")
-				public List<UserRepresentation> findUsers(@PathVariable("name") String name, @QueryParam("exact") Boolean exact) {
-					return keycloakUserService.findByUsername(name, exact);
-				}
-			}
+		@GetMapping("/findUsers/{name}")
+		public List<UserRepresentation> findUsers(@PathVariable("name") String name, @QueryParam("exact") Boolean exact) {
+			return keycloakUserService.findByUsername(name, exact);
+		}
+	}
         ```
       - weryfikacja: `http://localhost:8090/findUsers/z?exact=false`
