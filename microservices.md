@@ -567,7 +567,7 @@ Podstawowe pojęcia:
      }
     ```
     - poprzez Keycloak Rest API
-      - dodaj do pom'a:
+     - dodaj do pom'a:
         ```xml
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -575,7 +575,7 @@ Podstawowe pojęcia:
             <version>21.1.1</version>
         </dependency>
         ```         
-      - dodaj implementacje klas:
+     - dodaj implementacje klas:
         ```java
         @Configuration
         public class KeycloakUserConfig {
@@ -627,4 +627,4 @@ Podstawowe pojęcia:
 		}
 	}
         ```
-      - weryfikacja: `http://localhost:8090/findUsers/z?exact=false`
+     - weryfikacja: `http://localhost:8090/findUsers/z?exact=false`
